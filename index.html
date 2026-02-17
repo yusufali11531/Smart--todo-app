@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>To-Do List</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #f0f0f0;
+        }
+        
+        #todo-container {
+            width: 300px;
+            margin: 40px auto;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            background-color: #fff;
+        }
+        
+        #todo-input {
+            width: 70%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        
+        #add-btn {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        
+        #add-btn:hover {
+            background-color: #3e8e41;
+        }
+        
+        #todo-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .todo-item {
+            padding: 10px;
+            border-bottom: 1px solid #ccc;
+        }
+        
+        .todo-item:last-child {
+            border-bottom: none;
+        }
+        
+        .todo-item.completed {
+            text-decoration: line-through;
+        }
+        
+        .delete-btn {
+            float: right;
+            padding: 5px 10px;
+            background-color: #f44336;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div id="todo-container">
+        <h1>To-Do List</h1>
+        <input id="todo-input" type="text" placeholder="Enter a task">
+        <button id="add-btn">Add</button>
+        <ul id="todo-list"></ul>
+        <p id="empty-state">You’re all caught up! ☕</p>
+    </div>
+
+    <script>
+        let todoList = [];
+        const todoInput = document.getElementById('todo-input');
+        const addBtn = document.getElementById('add-btn');
+        const todoListElement = document.getElementById('todo-list');
+        const emptyStateElement = document.getElementById('empty-state');
+
+        // Load tasks from local storage
+        if (localStorage.getItem('todoList')) {
+            todoList = JSON.parse(localStorage.getItem('todoList'));
+            renderTodoList();
+        }
+
+        // Add event listener to add button
+        addBtn.addEventListener('click', addTodoItem);
+
+        // Add event listener to todo input
+        todoInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                addTodoItem();
+            }
+        });
+
+        function addTodoItem() {
+            const todoText = todoInput.value.trim();
+            if (todoText !== '') {
+                todoList.push({ text: todoText, completed: false });
+                saveTodoList();
+                renderTodoList();
+                todoInput.value = '';
+            }
+        }
+
+        function renderTodoList() {
+            todoListElement.innerHTML = '';
+            todoList.forEach((todoItem, index) => {
+                const todoElement = document.createElement('li');
+                todoElement.classList.add('todo-item');
+                if (todoItem.completed) {
+                    todoElement.classList.add('completed');
+                }
+                todoElement.innerHTML = `
+                    <span>${todoItem.text}</span>
+                    <button class="delete-btn" data-index="${index}">Delete</button>
+                `;
+                todoElement.addEventListener('click', (e) => {
+                    if (e.target.classList.contains('delete-btn')) return;
+                    todoItem.completed = !todoItem.completed;
+                    saveTodoList();
+                    renderTodoList();
+                });
+                todoListElement.appendChild(todoElement);
+            });
+            if (todoList.length === 0) {
+                emptyStateElement.style.display = 'block';
+            } else {
+                emptyStateElement.style.display = 'none';
+            }
+            const deleteBtns = document.querySelectorAll('.delete-btn');
+            deleteBtns.forEach((btn) => {
+                btn.addEventListener('click', (e) => {
+                    const index = e.target.dataset.index;
+                    todoList.splice(index, 1);
+                    saveTodoList();
+                    renderTodoList();
+                });
+            });
+        }
+
+        function saveTodoList() {
+            localStorage.setItem('todoList', JSON.stringify(todoList));
+        }
+    </script>
+</body>
+</html>
